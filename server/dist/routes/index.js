@@ -48,9 +48,6 @@ router.post("/", authMiddleware_1.authenticateJwtToken, (req, res) => __awaiter(
         return res.status(411).json({ msg: parsedInput.error });
     }
     const inputs = req.body;
-    // if(!(inputs.title) || inputs.description.trim() === "" ) {
-    //     return res.status(400).json({error: "Todo title cannot be empty"})
-    // }
     const todo = yield new index_1.Todo({
         todoTitle: inputs.title,
         todoDescription: inputs.description
@@ -85,6 +82,10 @@ router.delete("/:todoId", authMiddleware_1.authenticateJwtToken, (req, res) => _
 router.put("/:todoId", authMiddleware_1.authenticateJwtToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const todoId = req.params.todoId;
+        let parsedInput = inputProps.safeParse(req.body);
+        if (!parsedInput.success) {
+            return res.status(411).json({ msg: parsedInput.error });
+        }
         const todoTitle = req.body.title;
         const todoDescription = req.body.description;
         if (!todoId) {

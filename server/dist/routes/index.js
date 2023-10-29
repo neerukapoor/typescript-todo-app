@@ -86,8 +86,7 @@ router.put("/:todoId", authMiddleware_1.authenticateJwtToken, (req, res) => __aw
         if (!parsedInput.success) {
             return res.status(411).json({ msg: parsedInput.error });
         }
-        const todoTitle = req.body.title;
-        const todoDescription = req.body.description;
+        const inputs = req.body;
         if (!todoId) {
             return res.status(404).json({ error: "Todo Id not provided" });
         }
@@ -95,11 +94,11 @@ router.put("/:todoId", authMiddleware_1.authenticateJwtToken, (req, res) => __aw
         if (!existingTodo) {
             return res.status(404).json({ error: "Todo not found" });
         }
-        if (todoTitle) {
-            existingTodo.todoTitle = todoTitle;
+        if (inputs.title) {
+            existingTodo.todoTitle = inputs.title;
         }
-        if (todoDescription) {
-            existingTodo.todoDescription = todoDescription;
+        if (inputs.description) {
+            existingTodo.todoDescription = inputs.description;
         }
         const updatedTodo = yield existingTodo.save();
         res.status(200).json({ message: "Todo updated successfully", updatedTodo });

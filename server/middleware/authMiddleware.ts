@@ -7,7 +7,7 @@ export const authenticateJwtToken = (req: Request, res: Response, next: NextFunc
     if(accessToken) {
         const token = accessToken.split(' ')[1];
         if(!process.env.JWT_SECRET)
-            return res.status(403).json({message: "Got Authentication Error"});
+            return res.status(403).json({message: "Got Authentication Error, jwt secret not present"});
         jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
             if(err)
             {

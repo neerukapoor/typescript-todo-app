@@ -20,7 +20,7 @@ export const authenticateJwtToken = (req: Request, res: Response, next: NextFunc
                 return res.status(403).json({message: "Got Authentication Error, user is type of string"});
             console.log(user)
             console.log(user.user.username)
-            req.headers["user"] = user.username.username;
+            req.headers["user"] = user.user.username;
             console.log(req.headers["user"])
             next();
         })

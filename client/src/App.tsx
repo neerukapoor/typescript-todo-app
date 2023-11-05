@@ -4,7 +4,7 @@ import Navbar from "./components/Navbar"
 import Landing from "./components/Landing"
 import Login from './components/Login';
 import Register from './components/Register';
-
+import Todo from './components/Todo';
 
 function App() {
 
@@ -16,6 +16,7 @@ function App() {
           <Route path="/" element={<Landing/>}/>
           <Route path="/login" element={<Login/>}/>
           <Route path="/register" element={<Register/>}/>
+          <Route path="/todo" element={<Todo/>}/>
         </Routes>
       </Router>
     </>

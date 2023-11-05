@@ -8,23 +8,23 @@ import {useEffect, useState} from 'react';
 
 function Navbar() {
 
-    const [username, setUserName] = useState('');
+    const [user, setUserName] = useState('');
 
     useEffect(() => {
         fetch("http://localhost:3000/me", {
             method:"GET",
             headers: {
-                "token": "Bearer " + localStorage.getItem("jwtToken")    
+                "Content-type": "application/json",
+                "jwtToken": "Bearer " + localStorage.getItem("jwtToken")    
             }
         }).then((res)=>{
             return res.json()
         }).then((data) => {
-            setUserName(data.username)
-            console.log(data);
+            setUserName(data.username.username)
         })
     }, [])
 
-    if(username !== "") {
+    if(user !== "") {
         return <>
             <Box sx={{ flexGrow: 1 }}>
                 <AppBar position="static">
@@ -38,12 +38,12 @@ function Navbar() {
                     >
                     </IconButton>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        <a href="/" style={{textDecoration:"none", color:"white"}}>TODO</a>
+                        <a href="/todo" style={{textDecoration:"none", color:"white"}}>TODO</a>
                     </Typography>
-                    <Button color="inherit" href='/login' onClick={() => {localStorage.setItem("jwtToken", '')} }>Logout</Button>
                     <div>
-                        {/* {username} */}
+                        {user}
                     </div>
+                    <Button color="inherit" href='/login' onClick={() => {localStorage.setItem("jwtToken", '')} }>Logout</Button>
                     </Toolbar>
                 </AppBar>
             </Box>

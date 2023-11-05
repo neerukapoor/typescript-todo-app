@@ -2,10 +2,12 @@ import Card from '@mui/material/Card';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import {useState, useEffect} from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Register() {
     const [username, setUserName] = useState('');
     const [password, setPassword] = useState('');
+    const navigate = useNavigate();
 
     const userSignup = () => {
         fetch('http://localhost:3000/auth/signup', {
@@ -21,6 +23,7 @@ function Register() {
             return res.json()
         }).then((data) => {
             localStorage.setItem("jwtToken", data.jwtToken)
+            navigate('/todo');
         })
     }
 

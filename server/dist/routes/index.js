@@ -24,7 +24,8 @@ let inputProps = zod_1.z.object({
 });
 router.get("/me", authMiddleware_1.authenticateJwtToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const usernameFromHeader = req.headers["user"];
-    const username = yield auth_1.User.findOne({ usernameFromHeader });
+    console.log(usernameFromHeader);
+    const username = yield auth_1.User.findOne({ username: usernameFromHeader });
     console.log(username);
     if (username) {
         return res.json({ username });

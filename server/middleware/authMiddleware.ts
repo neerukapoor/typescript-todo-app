@@ -3,7 +3,8 @@ require('dotenv').config();
 import {Request, Response, NextFunction} from 'express';
 
 export const authenticateJwtToken = (req: Request, res: Response, next: NextFunction) => {
-    const accessToken = req.header("token");
+    const accessToken = req.header("jwtToken");
+    console.log(accessToken)
     if(accessToken) {
         const token = accessToken.split(' ')[1];
         if(!process.env.JWT_SECRET)
@@ -17,7 +18,10 @@ export const authenticateJwtToken = (req: Request, res: Response, next: NextFunc
                 return res.status(403).json({message: "Got Authentication Error, user is undefined"});
             if(typeof user === "string")
                 return res.status(403).json({message: "Got Authentication Error, user is type of string"});
-            req.headers["user"] = user.username;
+            console.log(user)
+            console.log(user.user.username)
+            req.headers["user"] = user.username.username;
+            console.log(req.headers["user"])
             next();
         })
     }

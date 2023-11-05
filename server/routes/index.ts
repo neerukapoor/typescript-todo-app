@@ -17,7 +17,8 @@ let inputProps = z.object({
 
 router.get("/me", authenticateJwtToken, async(req,res) => {
     const usernameFromHeader = req.headers["user"];
-    const username = await User.findOne({usernameFromHeader});
+    console.log(usernameFromHeader);
+    const username = await User.findOne({username: usernameFromHeader});
     console.log(username);
     if(username) {  
         return res.json({username})

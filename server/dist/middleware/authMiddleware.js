@@ -7,11 +7,12 @@ exports.authenticateJwtToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 require('dotenv').config();
 const authenticateJwtToken = (req, res, next) => {
-    const accessToken = req.header("token");
+    const accessToken = req.header("jwtToken");
+    console.log(accessToken);
     if (accessToken) {
         const token = accessToken.split(' ')[1];
         if (!process.env.JWT_SECRET)
-            return res.status(403).json({ message: "Got Authentication Error" });
+            return res.status(403).json({ message: "Got Authentication Error, jwt secret not present" });
         jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET, (err, user) => {
             if (err) {
                 return res.status(403).json({ message: "Got Authentication Error" });
@@ -20,7 +21,10 @@ const authenticateJwtToken = (req, res, next) => {
                 return res.status(403).json({ message: "Got Authentication Error, user is undefined" });
             if (typeof user === "string")
                 return res.status(403).json({ message: "Got Authentication Error, user is type of string" });
-            req.headers["user"] = user.username;
+            console.log(user);
+            console.log(user.user.username);
+            req.headers["user"] = user.user.username;
+            console.log(req.headers["user"]);
             next();
         });
     }

@@ -14,7 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const router = express_1.default.Router();
-const index_1 = require("../db/index");
 const auth_1 = require("../db/auth");
 const zod_1 = require("zod");
 const authMiddleware_1 = require("../middleware/authMiddleware");
@@ -33,9 +32,16 @@ router.get("/me", authMiddleware_1.authenticateJwtToken, (req, res) => __awaiter
     res.json({ message: "Not logged in" });
 }));
 // authenticateJwtToken,
-router.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get("/", authMiddleware_1.authenticateJwtToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const todos = yield index_1.Todo.find();
+        const userFromHeaders = req.headers["user"];
+        const existingUser = yield auth_1.User.findOne({ username: userFromHeaders });
+        console.log(existingUser);
+        if (!existingUser) {
+            console.log(`User with name "${userFromHeaders}" not found.`);
+            return res.status(404).json({ error: "User does not exist" });
+        }
+        const todos = existingUser.todo;
         res.status(200).json({ todos: todos });
     }
     catch (error) {
@@ -44,36 +50,50 @@ router.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 }));
 router.post("/", authMiddleware_1.authenticateJwtToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const parsedInput = inputProps.safeParse(req.body);
-    if (!parsedInput.success) {
-        return res.status(411).json({ msg: parsedInput.error });
+    try {
+        const userFromHeaders = req.headers["user"];
+        const existingUser = yield auth_1.User.findOne({ username: userFromHeaders });
+        console.log(existingUser);
+        if (!existingUser) {
+            console.log(`User with name "${userFromHeaders}" not found.`);
+            return res.status(404).json({ error: "User does not exist" });
+        }
+        const parsedInput = inputProps.safeParse(req.body);
+        if (!parsedInput.success) {
+            return res.status(411).json({ msg: parsedInput.error });
+        }
+        const inputs = req.body;
+        const newTodo = {
+            todoTitle: inputs.title,
+            todoDescription: inputs.description
+        };
+        existingUser.todo.push(newTodo);
+        const updatedUser = yield existingUser.save();
+        res.json({ User: updatedUser });
     }
-    const inputs = req.body;
-    const todo = yield new index_1.Todo({
-        todoTitle: inputs.title,
-        todoDescription: inputs.description
-    });
-    todo.save()
-        .then((savedTodo) => {
-        console.log(savedTodo);
-        res.status(200).json({ todo: todo });
-    })
-        .catch(error => {
-        res.status(500).json({ error: "An error occurred while saving the todo" });
-    });
+    catch (error) {
+        res.status(500).json({ error: 'Error adding todo to the User: ' + error });
+    }
 }));
 router.delete("/:todoId", authMiddleware_1.authenticateJwtToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const userFromHeaders = req.headers["user"];
+        const existingUser = yield auth_1.User.findOne({ username: userFromHeaders });
+        if (!existingUser) {
+            console.log(`User with name "${userFromHeaders}" not found.`);
+            return res.status(404).json({ error: "User does not exist" });
+        }
         const todoId = req.params.todoId;
         if (!todoId || todoId.trimEnd() === "") {
             res.status(400).json({ error: "Todo Id should Not be empty" });
         }
-        const deletedTodo = yield index_1.Todo.findByIdAndDelete(todoId);
-        console.log(deletedTodo);
-        if (!deletedTodo) {
-            return res.status(404).json({ error: "Todo not found" });
+        const todoIndex = existingUser.todo.findIndex(todoItem => todoItem._id.toString() === todoId);
+        if (todoIndex === -1) {
+            return res.status(404).json({ message: 'Todo item not found' });
         }
-        res.status(200).json({ message: "Todo deleted successfully", deletedTodo });
+        existingUser.todo.splice(todoIndex, 1);
+        yield existingUser.save();
+        res.status(200).json({ message: "Todo deleted successfully", existingUser });
     }
     catch (error) {
         console.error(error);
@@ -82,7 +102,16 @@ router.delete("/:todoId", authMiddleware_1.authenticateJwtToken, (req, res) => _
 }));
 router.put("/:todoId", authMiddleware_1.authenticateJwtToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const userFromHeaders = req.headers["user"];
+        const existingUser = yield auth_1.User.findOne({ username: userFromHeaders });
+        if (!existingUser) {
+            console.log(`User with name "${userFromHeaders}" not found.`);
+            return res.status(404).json({ error: "User does not exist" });
+        }
         const todoId = req.params.todoId;
+        if (!todoId || todoId.trimEnd() === "") {
+            res.status(400).json({ error: "Todo Id should Not be empty" });
+        }
         let parsedInput = inputProps.safeParse(req.body);
         if (!parsedInput.success) {
             return res.status(411).json({ msg: parsedInput.error });
@@ -91,18 +120,20 @@ router.put("/:todoId", authMiddleware_1.authenticateJwtToken, (req, res) => __aw
         if (!todoId) {
             return res.status(404).json({ error: "Todo Id not provided" });
         }
-        const existingTodo = yield index_1.Todo.findById(todoId);
-        if (!existingTodo) {
+        const todoToUpdate = existingUser.todo.id(todoId);
+        if (!todoToUpdate) {
             return res.status(404).json({ error: "Todo not found" });
         }
+        // Update the todo properties based on the input
         if (inputs.title) {
-            existingTodo.todoTitle = inputs.title;
+            todoToUpdate.todoTitle = inputs.title;
         }
         if (inputs.description) {
-            existingTodo.todoDescription = inputs.description;
+            todoToUpdate.todoDescription = inputs.description;
         }
-        const updatedTodo = yield existingTodo.save();
-        res.status(200).json({ message: "Todo updated successfully", updatedTodo });
+        // Save the updated user
+        const updatedUser = yield existingUser.save();
+        res.status(200).json({ message: "Todo updated successfully", todoToUpdate });
     }
     catch (error) {
         console.error(error);

@@ -1,6 +1,5 @@
 import express from 'express';
 const router = express.Router();
-import {Todo} from '../db/index'
 import {User} from '../db/auth';
 import {z} from 'zod';
 import {authenticateJwtToken} from "../middleware/authMiddleware"
@@ -27,9 +26,17 @@ router.get("/me", authenticateJwtToken, async(req,res) => {
 })
 
 // authenticateJwtToken,
-router.get("/", async (req,res) => {
+router.get("/", authenticateJwtToken, async (req,res) => {
     try {
-        const todos = await Todo.find();
+        const userFromHeaders = req.headers["user"];
+        const existingUser = await User.findOne({ username: userFromHeaders });
+        console.log(existingUser)
+        if (!existingUser) {
+            console.log(`User with name "${userFromHeaders}" not found.`);
+            return res.status(404).json({error: "User does not exist"});
+        }
+
+        const todos = existingUser.todo;
         res.status(200).json({todos: todos});
     } catch(error) {
         console.error(error);
@@ -38,41 +45,61 @@ router.get("/", async (req,res) => {
 })
 
 router.post("/", authenticateJwtToken, async (req,res) => {
+    try {
+        const userFromHeaders = req.headers["user"];
+        const existingUser = await User.findOne({ username: userFromHeaders });
+        console.log(existingUser)
+        if (!existingUser) {
+            console.log(`User with name "${userFromHeaders}" not found.`);
+            return res.status(404).json({error: "User does not exist"});
+        }
 
-    const parsedInput = inputProps.safeParse(req.body);
-    if(!parsedInput.success) {
-        return res.status(411).json({msg:parsedInput.error});
+        const parsedInput = inputProps.safeParse(req.body);
+        if(!parsedInput.success) {
+            return res.status(411).json({msg:parsedInput.error});
+        }
+
+        const inputs: CreateTodoInput = req.body; 
+
+        const newTodo = {
+            todoTitle: inputs.title,
+            todoDescription: inputs.description
+        }
+
+        existingUser.todo.push(newTodo);
+        const updatedUser = await existingUser.save();
+        res.json({User:updatedUser})
     }
-
-    const inputs: CreateTodoInput = req.body; 
-
-    const todo = await new Todo({
-        todoTitle: inputs.title,
-        todoDescription: inputs.description
-    })
-    todo.save()
-    .then((savedTodo) => {
-        console.log(savedTodo);
-        res.status(200).json({todo: todo})
-    })
-    .catch(error => {
-        res.status(500).json({ error: "An error occurred while saving the todo" });
-    });
+    catch (error) {
+        res.status(500).json({error:'Error adding todo to the User: '+error})
+    }
 })
 
 router.delete("/:todoId", authenticateJwtToken, async (req,res) => {
     try {
+        const userFromHeaders = req.headers["user"];
+        const existingUser = await User.findOne({ username: userFromHeaders });
+
+        if (!existingUser) {
+            console.log(`User with name "${userFromHeaders}" not found.`);
+            return res.status(404).json({error: "User does not exist"});
+        }
+
         const todoId = req.params.todoId;
         if(!todoId || todoId.trimEnd() === "") {
             res.status(400).json({error: "Todo Id should Not be empty"});
         }  
-        const deletedTodo = await Todo.findByIdAndDelete(todoId);
 
-        console.log(deletedTodo);
-        if(!deletedTodo) {
-            return res.status(404).json({error: "Todo not found"});
+        const todoIndex = existingUser.todo.findIndex(todoItem => todoItem._id.toString() === todoId);
+        
+        if (todoIndex === -1) {
+            return res.status(404).json({ message: 'Todo item not found' });
         }
-        res.status(200).json({ message: "Todo deleted successfully", deletedTodo });
+    
+        existingUser.todo.splice(todoIndex, 1);
+    
+        await existingUser.save();
+        res.status(200).json({ message: "Todo deleted successfully", existingUser });
     } catch(error) {
         console.error(error);
         res.status(500).json({error: "An error occurred while deleting the todo"})
@@ -81,7 +108,18 @@ router.delete("/:todoId", authenticateJwtToken, async (req,res) => {
 
 router.put("/:todoId", authenticateJwtToken, async (req, res) => {
     try {
+        const userFromHeaders = req.headers["user"];
+        const existingUser = await User.findOne({ username: userFromHeaders });
+
+        if (!existingUser) {
+            console.log(`User with name "${userFromHeaders}" not found.`);
+            return res.status(404).json({error: "User does not exist"});
+        }
+
         const todoId = req.params.todoId;
+        if(!todoId || todoId.trimEnd() === "") {
+            res.status(400).json({error: "Todo Id should Not be empty"});
+        }
 
         let parsedInput = inputProps.safeParse(req.body);
         if(!parsedInput.success) 
@@ -95,22 +133,24 @@ router.put("/:todoId", authenticateJwtToken, async (req, res) => {
             return res.status(404).json({error: "Todo Id not provided"});
         }
 
-        const existingTodo = await Todo.findById(todoId);
+        const todoToUpdate = existingUser.todo.id(todoId);
 
-        if(!existingTodo) {
+        if (!todoToUpdate) {
             return res.status(404).json({ error: "Todo not found" });
         }
 
+        // Update the todo properties based on the input
         if (inputs.title) {
-            existingTodo.todoTitle = inputs.title;
+            todoToUpdate.todoTitle = inputs.title;
         }
-
         if (inputs.description) {
-            existingTodo.todoDescription = inputs.description;
+            todoToUpdate.todoDescription = inputs.description;
         }
 
-        const updatedTodo = await existingTodo.save();
-        res.status(200).json({ message: "Todo updated successfully", updatedTodo });
+        // Save the updated user
+        const updatedUser = await existingUser.save();
+
+        res.status(200).json({ message: "Todo updated successfully", todoToUpdate });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "An error occurred while updating the todo" });

@@ -8,7 +8,6 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 require('dotenv').config();
 const authenticateJwtToken = (req, res, next) => {
     const accessToken = req.header("jwtToken");
-    console.log(accessToken);
     if (accessToken) {
         const token = accessToken.split(' ')[1];
         if (!process.env.JWT_SECRET)

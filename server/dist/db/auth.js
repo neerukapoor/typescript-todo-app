@@ -33,11 +33,6 @@ const TodoSchema = new mongoose_1.Schema({
 const UserSchema = new mongoose_1.default.Schema({
     username: { type: String },
     password: { type: String },
-    // todo: [{
-    //     _id:false,
-    //     todoTitle: {type:String},
-    //     todoDescription: {type:String}
-    // }]
     todo: [TodoSchema]
 });
 exports.User = mongoose_1.default.model('User', UserSchema);

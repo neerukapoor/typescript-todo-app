@@ -15,11 +15,6 @@ interface ITodo extends Document {
 const UserSchema = new mongoose.Schema({
     username: {type:String},
     password: {type:String},
-    // todo: [{
-    //     _id:false,
-    //     todoTitle: {type:String},
-    //     todoDescription: {type:String}
-    // }]
     todo: [TodoSchema]
 })
 

@@ -16,9 +16,7 @@ let inputProps = z.object({
 
 router.get("/me", authenticateJwtToken, async(req,res) => {
     const usernameFromHeader = req.headers["user"];
-    console.log(usernameFromHeader);
     const username = await User.findOne({username: usernameFromHeader});
-    console.log(username);
     if(username) {  
         return res.json({username})
     }
@@ -30,7 +28,6 @@ router.get("/", authenticateJwtToken, async (req,res) => {
     try {
         const userFromHeaders = req.headers["user"];
         const existingUser = await User.findOne({ username: userFromHeaders });
-        console.log(existingUser)
         if (!existingUser) {
             console.log(`User with name "${userFromHeaders}" not found.`);
             return res.status(404).json({error: "User does not exist"});
@@ -108,7 +105,10 @@ router.delete("/:todoId", authenticateJwtToken, async (req,res) => {
 
 router.put("/:todoId", authenticateJwtToken, async (req, res) => {
     try {
+        console.log("skdhfs");
         const userFromHeaders = req.headers["user"];
+        console.log("user from header")
+        console.log(userFromHeaders)
         const existingUser = await User.findOne({ username: userFromHeaders });
 
         if (!existingUser) {
@@ -117,6 +117,7 @@ router.put("/:todoId", authenticateJwtToken, async (req, res) => {
         }
 
         const todoId = req.params.todoId;
+        console.log("yaha" + todoId)
         if(!todoId || todoId.trimEnd() === "") {
             res.status(400).json({error: "Todo Id should Not be empty"});
         }

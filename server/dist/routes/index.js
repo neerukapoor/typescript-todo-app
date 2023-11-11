@@ -23,9 +23,7 @@ let inputProps = zod_1.z.object({
 });
 router.get("/me", authMiddleware_1.authenticateJwtToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const usernameFromHeader = req.headers["user"];
-    console.log(usernameFromHeader);
     const username = yield auth_1.User.findOne({ username: usernameFromHeader });
-    console.log(username);
     if (username) {
         return res.json({ username });
     }
@@ -36,7 +34,6 @@ router.get("/", authMiddleware_1.authenticateJwtToken, (req, res) => __awaiter(v
     try {
         const userFromHeaders = req.headers["user"];
         const existingUser = yield auth_1.User.findOne({ username: userFromHeaders });
-        console.log(existingUser);
         if (!existingUser) {
             console.log(`User with name "${userFromHeaders}" not found.`);
             return res.status(404).json({ error: "User does not exist" });
@@ -102,13 +99,17 @@ router.delete("/:todoId", authMiddleware_1.authenticateJwtToken, (req, res) => _
 }));
 router.put("/:todoId", authMiddleware_1.authenticateJwtToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log("skdhfs");
         const userFromHeaders = req.headers["user"];
+        console.log("user from header");
+        console.log(userFromHeaders);
         const existingUser = yield auth_1.User.findOne({ username: userFromHeaders });
         if (!existingUser) {
             console.log(`User with name "${userFromHeaders}" not found.`);
             return res.status(404).json({ error: "User does not exist" });
         }
         const todoId = req.params.todoId;
+        console.log("yaha" + todoId);
         if (!todoId || todoId.trimEnd() === "") {
             res.status(400).json({ error: "Todo Id should Not be empty" });
         }

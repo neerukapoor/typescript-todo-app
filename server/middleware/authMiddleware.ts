@@ -4,7 +4,6 @@ import {Request, Response, NextFunction} from 'express';
 
 export const authenticateJwtToken = (req: Request, res: Response, next: NextFunction) => {
     const accessToken = req.header("jwtToken");
-    console.log(accessToken)
     if(accessToken) {
         const token = accessToken.split(' ')[1];
         if(!process.env.JWT_SECRET)

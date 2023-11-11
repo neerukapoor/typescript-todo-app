@@ -3,6 +3,7 @@ import { yellow } from '@mui/material/colors';
 import {useState, useEffect} from 'react';
 import EditIcon from '@mui/icons-material/Edit';
 import { Dialog, DialogTitle, DialogContent, Button, TextField } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 
 type TodoItem = {
@@ -18,6 +19,9 @@ function Todo() {
     const [editTodoTitle, setEditTodoTitle] = useState('');
     const [editTodoDescription, setEditTodoDescription] = useState('');
     const [todoId, setTodoId] = useState('');
+    const [newTodo, setnewTodo] = useState('');
+    const [newDescription, setnewDescription] = useState('');
+    const navigate = useNavigate();
 
 
     useEffect(() => {
@@ -48,6 +52,7 @@ function Todo() {
             method: 'PUT', 
             headers: {
                 'Content-Type': 'application/json',
+                "jwtToken": "Bearer " + localStorage.getItem("jwtToken")  
             },
             body: JSON.stringify({
                 title: editTodoTitle,
@@ -60,27 +65,46 @@ function Todo() {
                 throw new Error('Failed to update todo')
             }
         }).then((data) => {
-            //code
+            navigate('/todo');
             console.log(data); 
         })
         setShowModal(false);
     }
 
-    return <> 
-        <div style={{display:"flex", justifyContent:"center", alignItems:"center", height:"85vh"}}>
-            <Card sx={{ minWidth: 275, padding:"5px" }}>
-                {todos.map((todo) => (
-                     <div
-                     key={todo._id}
-                     onClick={() => openModal(todo)}
-                     style={{ margin: "20px", height: "30px", padding: "5px", background: "lightgrey", borderRadius: "2px" }}
-                 >
-                    {todo.todoTitle}
-                    </div>
-                ))}
-            </Card>
-        </div>
+    const addTodo = () => {
+        fetch("http://localhost:3000", {
+            method:"POST",
+            headers: {
+                'Content-Type': "application/json",
+                "jwtToken": "Bearer " + localStorage.getItem("jwtToken")  
+            },
+            body: JSON.stringify({
+                title: newTodo,
+                description: newDescription
+            })
+        }).then((res)=>{
+            return res.json()
+        }).then((data) => {
+            navigate('/todo');
+        })
+    }
 
+    return <> 
+            <div style={{display:"flex", flexDirection:"column", justifyContent:"center", alignItems:"center", height:"85vh"}}>
+            <TextField style={{marginBottom:"9px"}} id="outlined-basic" label="Enter Todo" variant="outlined" onChange={(e) => setnewTodo(e.target.value)}/>
+            <button onClick={addTodo}>save</button>
+                <Card sx={{ minWidth: 275, padding:"5px" }}>
+                    {todos.map((todo) => (
+                        <div
+                        key={todo._id}
+                        onClick={() => openModal(todo)}
+                        style={{ margin: "20px", height: "30px", padding: "5px", background: "lightgrey", borderRadius: "2px" }}
+                    >
+                        {todo.todoTitle}
+                        </div>
+                    ))}
+                </Card>
+            </div>
          {/* Modal */}
          <Dialog open={showModal} onClose={() => setShowModal(false)}>
             <DialogTitle>Todo Description</DialogTitle>

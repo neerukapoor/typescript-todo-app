@@ -10,29 +10,10 @@ import axios from "axios";
 import { userState } from './store/atoms/user';
 import {
   RecoilRoot,
-  atom,
-  selector,
-  useRecoilState,
-  useRecoilValue,
   useSetRecoilState,
 } from 'recoil';
 
 function App() {
-  const [username, setUserName] = useState('');
-
-  // useEffect(() => {
-  //   fetch("http://localhost:3000/me", {
-  //       method:"GET",
-  //       headers: {
-  //           "Content-type": "application/json",
-  //           "jwtToken": "Bearer " + localStorage.getItem("jwtToken")    
-  //       }
-  //     }).then((res)=>{
-  //         return res.json()
-  //     }).then((data) => {
-  //         setUserName(data.username.username)
-  //     })
-  // }, [])
   return (
     <>
     <RecoilRoot>

@@ -6,38 +6,83 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Todo from './components/Todo';
 import { useEffect, useState } from 'react';
+import axios from "axios";
+import { userState } from './store/atoms/user';
+import {
+  RecoilRoot,
+  atom,
+  selector,
+  useRecoilState,
+  useRecoilValue,
+  useSetRecoilState,
+} from 'recoil';
 
 function App() {
   const [username, setUserName] = useState('');
 
-  useEffect(() => {
-    fetch("http://localhost:3000/me", {
-        method:"GET",
-        headers: {
-            "Content-type": "application/json",
-            "jwtToken": "Bearer " + localStorage.getItem("jwtToken")    
-        }
-      }).then((res)=>{
-          return res.json()
-      }).then((data) => {
-          setUserName(data.username.username)
-      })
-  }, [])
-  console.log("skaxv,mndxcv")
-  console.log(username)
+  // useEffect(() => {
+  //   fetch("http://localhost:3000/me", {
+  //       method:"GET",
+  //       headers: {
+  //           "Content-type": "application/json",
+  //           "jwtToken": "Bearer " + localStorage.getItem("jwtToken")    
+  //       }
+  //     }).then((res)=>{
+  //         return res.json()
+  //     }).then((data) => {
+  //         setUserName(data.username.username)
+  //     })
+  // }, [])
   return (
     <>
-      <Navbar username={username} setUserName={setUserName}/>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Landing/>}/>
-          <Route path="/login" element={<Login/>}/>
-          <Route path="/register" element={<Register/>}/>
-          <Route path="/todo" element={<Todo/>}/>
-        </Routes>
-      </Router>
+    <RecoilRoot>
+        <Navbar/>
+        <InitUser/>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Landing/>}/>
+            <Route path="/login" element={<Login/>}/>
+            <Route path="/register" element={<Register/>}/>
+            <Route path="/todo" element={<Todo/>}/>
+          </Routes>
+        </Router>
+      </RecoilRoot>
     </>
   )
+}
+
+function InitUser() {
+  const setUser = useSetRecoilState(userState);
+  const init = async() => {
+    try {
+      const response = await axios.get("http://localhost:3000/me", {
+        headers: {
+          "Content-type": "application/json",
+          "jwtToken": "Bearer " + localStorage.getItem("jwtToken")    
+        }
+      })
+      if(response.data.username.username) {
+        setUser({
+          isLoading:false,
+          userName : response.data.username.username
+        })
+      } else {
+        setUser({
+          isLoading: false,
+          userName: null
+        })
+      } 
+    } catch(e) {
+      setUser({
+        isLoading: false,
+        userName: null
+      })
+    }
+  } 
+  useEffect(() => {
+    init();
+  }, [])
+  return <></>
 }
 
 export default App

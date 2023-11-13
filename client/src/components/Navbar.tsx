@@ -4,13 +4,22 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
+import {useSetRecoilState, useRecoilValue} from 'recoil';
+import { userNameState } from '../store/selectors/userName';
+import { isUserLoadingState } from '../store/selectors/isUserLoading'
 
 interface NavBarProps {
     username: string,
     setUserName: React.Dispatch<React.SetStateAction<string>>
 }
 
-const Navbar: React.FC<NavBarProps> = ({username, setUserName }) => {
+const Navbar = ({}) => {
+    const userLoading = useRecoilValue(isUserLoadingState);
+    const username = useRecoilValue(userNameState)
+
+    if(userLoading) {
+        return <>Loading...</>
+    }
 
     if(username !== "") {
         return <>

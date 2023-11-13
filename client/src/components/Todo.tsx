@@ -71,6 +71,21 @@ function Todo() {
         setShowModal(false);
     }
 
+    const markComplete = () => {
+        fetch(`http://localhost:3000/${todoId}`, {
+            method:"DELETE",
+            headers: {
+                'Content-Type': "application/json",
+                "jwtToken": "Bearer " + localStorage.getItem("jwtToken")  
+            }
+        }).then((res)=>{
+            return res.json()
+        }).then((data) => {
+            navigate('/todo');
+            setShowModal(false);
+        })
+    }
+
     const addTodo = () => {
         fetch("http://localhost:3000", {
             method:"POST",
@@ -119,9 +134,14 @@ function Todo() {
                 label="Description"
                 value = {editTodoDescription}
                 onChange={(e) => setEditTodoDescription(e.target.value)}/>
-            <Button variant="contained" color="primary" onClick={saveChanges}>
-                Save
-            </Button>
+            <div>
+                <Button variant="contained" color="primary" onClick={saveChanges}>
+                    Save
+                </Button>
+                <Button variant="contained" color="primary" onClick={markComplete}>
+                    Done
+                </Button>
+            </div>
         </Dialog>
     </>
 }

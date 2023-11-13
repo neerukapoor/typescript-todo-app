@@ -4,27 +4,15 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
-import {useEffect, useState} from 'react';
 
-function Navbar() {
+interface NavBarProps {
+    username: string,
+    setUserName: React.Dispatch<React.SetStateAction<string>>
+}
 
-    const [user, setUserName] = useState('');
+const Navbar: React.FC<NavBarProps> = ({username, setUserName }) => {
 
-    useEffect(() => {
-        fetch("http://localhost:3000/me", {
-            method:"GET",
-            headers: {
-                "Content-type": "application/json",
-                "jwtToken": "Bearer " + localStorage.getItem("jwtToken")    
-            }
-        }).then((res)=>{
-            return res.json()
-        }).then((data) => {
-            setUserName(data.username.username)
-        })
-    }, [])
-
-    if(user !== "") {
+    if(username !== "") {
         return <>
             <Box sx={{ flexGrow: 1 }}>
                 <AppBar position="static">
@@ -41,7 +29,7 @@ function Navbar() {
                         <a href="/todo" style={{textDecoration:"none", color:"white"}}>TODO</a>
                     </Typography>
                     <div>
-                        {user}
+                        {username}
                     </div>
                     <Button color="inherit" href='/login' onClick={() => {localStorage.setItem("jwtToken", '')} }>Logout</Button>
                     </Toolbar>
